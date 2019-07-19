@@ -2,7 +2,7 @@
 const FREQ = 3 ;
 const FREQ_SAMPLING = 64 ; // 64 per cycle
 const N = 64;
-let samples = [];
+let samples = [1,2,3,4];
 let inverse = [];
 let XRe = [], XIm = [], XMag = [];
 
@@ -18,9 +18,12 @@ function setup(){
 function collectSample(samples) {
    let ts = 1/FREQ_SAMPLING ;
    for (var i=0; i<N; i++){
-      // samples[i] =  (0.5 - 0.5*cos(2*Math.PI*i*ts)) * (sin(2*Math.PI*3.4*i*ts) + 0.1*sin(2*Math.PI*7*i*ts));
-      //   samples[i] = i < 34 || i > 34 ? 0 : 1;  // impulse
-      samples[i] = sin(2*Math.PI*i*ts) ; //+  sin(2*Math.PI*2*i*ts);
+       //samples[i] =  (0.5 - 0.5*cos(2*Math.PI*i*ts)) * (sin(2*Math.PI*3.4*i*ts) + 0.1*sin(2*Math.PI*7*i*ts));
+       // samples[i] = i < 30 || i > 38 ? 0 : 1;  // impulse
+        //samples[i] = sin(2*Math.PI*(i - 1/(12*ts))*ts ) ; //+  sin(2*Math.PI*2*i*ts);
+        samples[i] = sin(2*Math.PI*i*ts + Math.PI/6 ) ; //+  sin(2*Math.PI*2*i*ts);
+       // samples[i] = sin(2*Math.PI*i*ts) ; //+  sin(2*Math.PI*2*i*ts);
+       // samples[i] = 1/64 * (-32*sin(2*Math.PI*i*ts) - 2 * 27.71*cos(2*Math.PI*i*ts)) ;
       
    }
 }
@@ -31,10 +34,10 @@ function dft(samples, XRe, XIm){
        XIm[k] = 0 ;
        for ( var n=0; n < N; n++){
            XRe[k] += samples[n] * cos(2*Math.PI*k*n/N) ; 
-           XIm[k] += samples[n] * sin(2*Math.PI*k*n/N) ; 
+           XIm[k] -= samples[n] * sin(2*Math.PI*k*n/N) ; 
        }
-       XMag[k] = Math.sqrt(XRe[k] ** 2 + XIm[k] ** 2);
-       console.log(k, XRe[k] , "   " , XIm[k] , "  Mag = " , XMag[k]);
+       XMag[k] = mag(XRe[k], XIm[k]) < 0.000001 ? 0 : mag(XRe[k], XIm[k]) ;
+       console.log(k + " : " + XRe[k] + " + j." +  XIm[k] + '  Mag = ' + XMag[k]);
    }
 }
 
@@ -48,12 +51,12 @@ function idft(org, XRe, XIm) {
             re[k] = 0;
             im[k] = 0;
             for ( var n=0; n < N; n++){
-                re[k] += (1/N) * ( XRe[n] * cos(2*Math.PI*k*n/N) + XIm[n] * sin(2*Math.PI*k*n/N)) ; 
+                re[k] += (1/N) * ( XRe[n] * cos(2*Math.PI*k*n/N) - XIm[n] * sin(2*Math.PI*k*n/N)) ; 
                 im[k] += (1/N) * ( XIm[n] * cos(2*Math.PI*k*n/N) + XRe[n] * sin(2*Math.PI*k*n/N)) ; 
                 //org[k] += samples[n] * sin(2*Math.PI*k*n/N) ; 
             }
             org[k] = re[k];
-            console.log(k, org[k], re[k]);
+           // console.log(k, org[k], re[k]);
         }
        return org;
 }
@@ -83,20 +86,20 @@ function axis(){
 }
 
 
-function drawSine(freq) {
+function drawSine() {
     
     for (var i=0; i < N; i++) {
-        ellipse(i * 5, 100 * samples[i], 2,2);
+        ellipse(i * 5, 50 * samples[i], 2,2);
     }
-    ellipse(i * 5, 100 * samples[0], 2,2);
+   // ellipse(i * 5, 10 * samples[0], 2,2);
 }
 
 function drawOrginal() {
     stroke(255, 100,100);
     for (var i=0; i < N; i++) {
-        ellipse(i * 5, 100 * inverse[i] -20 , 2,2);
+        ellipse(i * 5, 50 * inverse[i] - 200 , 2,2);
     }
-    ellipse(i * 5, 100 * inverse[0] - 20, 2,2);
+   // ellipse(i * 5, 10 * inverse[0] - 200, 2,2);
 }
 
 function samplesPlaces(){
@@ -116,7 +119,7 @@ function draw(){
    // drawSine(1);
 
     stroke(20, 25, 255);
-   // drawSine(10);
+    drawSine();
     drawOrginal();
 
     FreqDomain();
